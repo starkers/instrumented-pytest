@@ -3,37 +3,39 @@
 version: "3"
 services:
 
-  app:
-    build:
-      context: .
-    links:
-      - zalenium
-      - pushgateway
+  # app:
+    # build:
+      # context: .
+    # depends_on:
+      # - zalenium
+      # - pushgateway
 
   zalenium:
     image: dosel/zalenium
     ports:
       - 4444:4444
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:rw
-      # - ./videos:/home/seluser/videos
+      - /tmp/videos:/home/seluser/videos
+      - /var/run/docker.sock:/var/run/docker.sock
     privileged: true
-    command: [ "start" ]
+    command: >
+       start --desiredContainers 2
+             --cbtEnabled false
+             --videoRecordingEnabled true
 
+  # this is here so that this image is pulled..
+  # there is no need to docker-compose the chrome container
+  # zalenium will talk to docker and orchestrate the workers
+  # however zalenium may have issues pulling sometimes..
+  chrome:
+    image: elgalu/selenium
+    command: [ /bin/false ]
+    restart: "no"
 
   pushgateway:
     image: prom/pushgateway:v0.4.0
     ports:
       - 9091:9091
-
-  prometheus:
-    image: prom/prometheus:v2.0.0
-    command: --config.file=/etc/prometheus/prometheus.yml
-    ports:
-      - 9090:9090
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./prometheus/alerts/:/etc/prometheus/rules.d/
 
   grafana:
     image: grafana/grafana:4.6.2
@@ -48,5 +50,13 @@ services:
     ports:
       - 9093:9093
     volumes:
-      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - ./local/alertmanager.yml:/etc/alertmanager/alertmanager.yml
 
+  prometheus:
+    image: prom/prometheus:v2.0.0
+    command: --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
+    volumes:
+      - ./local/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./local/alerts/:/etc/prometheus/rules.d/

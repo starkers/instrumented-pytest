@@ -4,6 +4,10 @@ from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.remote.remote_connection import RemoteConnection
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+import requests
+from os import getenv
+import time
+from datetime import datetime as dt
 
 
 @pytest.fixture(scope='function')
@@ -12,10 +16,19 @@ def driver(request):
 
     :type request: object
     """
-    # test_name = request.node.name
-    hubAddress = "http://localhost:4444/wd/hub"
+
+    hub_address = getenv("HUB_ADDRESS", "http://localhost:4444/wd/hub")
+
+    # wait till the endpoint comes up
+    # response = requests.head(hub_address)
+    # while response.status_code != 500:
+    #     print('sleeping:', str(dt.now()), response.status_code)
+    #     print('sleeping:', str(dt.now()), response.headers)
+    #     time.sleep(1)
+    #     response = requests.head(hub_address)
+
     browser = webdriver.Remote(
-        command_executor=hubAddress,
+        command_executor=hub_address,
         desired_capabilities=DesiredCapabilities.CHROME
     )
 
