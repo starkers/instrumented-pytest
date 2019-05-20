@@ -1,0 +1,9 @@
+**.pyc
+.git
+.gitignore
+.idea/**
+.pytest_cache
+__pycache__
+__pycache__/**
+docker-compose.yml
+venv/**
