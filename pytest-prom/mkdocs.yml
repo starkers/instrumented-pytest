@@ -1,0 +1,10 @@
+site_name: pytest-prom
+site_description: prom metrics
+site_author: David Stark
+
+theme: readthedocs
+
+repo_url: https://github.com/starkers/pytest-prom
+
+pages:
+- Home: index.md
