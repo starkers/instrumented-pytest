@@ -19,7 +19,7 @@ import pytest
 
 
 
-from prometheus_client import CollectorRegistry, Gauge, push_to_gateway, generate_latest
+from prometheus_client import CollectorRegistry, Gauge, pushadd_to_gateway
 
 def pytest_addoption(parser):
     group = parser.getgroup('terminal reporting')
@@ -70,9 +70,10 @@ class PrometheusReport:
             name = '{prefix}{funcname}'.format(
                 prefix=self.prefix,
                 funcname=report.location[2]
-            )
+            ).replace('.', '_')
+            print("reporting: {}".format(name))
             metric = Gauge(name, report.nodeid, self.extra_labels.keys(), registry=registry)
             metric.labels(**self.extra_labels).set(1 if report.outcome == 'passed' else 0)
-            push_to_gateway(self.pushgateway_url, registry=registry, job=self.job_name)
+            pushadd_to_gateway(self.pushgateway_url, registry=registry, job=self.job_name)
 
 
