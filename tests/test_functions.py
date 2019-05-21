@@ -4,16 +4,15 @@ import pytest
 
 
 @pytest.mark.usefixtures("driver")
-def test_google_title(driver):
-    # driver.get("https://google.com")
-    # print(driver.title)
-    # print("testing {}".format(driver))
-    # assert driver.title == 'Google'
-    assert True
+def test_google(driver):
+    driver.get("https://google.com")
+    print(driver.title)
+    print("testing {}".format(driver))
+    assert driver.title == 'Google'
 
 @pytest.mark.usefixtures("driver")
-def test_wtf_title(driver):
-    assert "quick" == "notquick"
+def test_fast_failure(driver):
+    assert "quick" == "quick"
 
     # driver.get("https://wtfismyip.com")
     # print(driver.title)

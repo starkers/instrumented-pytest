@@ -41,11 +41,15 @@ def driver(request):
         raise WebDriverException("Never created!")
 
     def fin():
-        print("generate a report or summin in fin()")
+        # print("=== generate a report or summin in fin()")
+        print("===== close()")
+        browser.close()
+        print("===== quit()")
+        browser.quit()
         # https://github.com/saucelabs-sample-test-frameworks/Python-Pytest-Selenium/blob/master/conftest.py
         pass
 
-    # print("## session teardown")
+    print("===== session teardown")
     # print("total tests = {}".format(request.session.testscollected))
     # print("tests that failed = {}".format(request.session.testsfailed))
 
@@ -56,19 +60,6 @@ def driver(request):
         print("telling zalenium the tests failed")
         browser.add_cookie({"name": "zaleniumTestPassed", "value": "false"})
 
-    browser.close()
     request.addfinalizer(fin)
-
-
-# @pytest.hookimpl(tryfirst=True, hookwrapper=True)
-# def pytest_runtest_makereport(item, call):
-#     # this sets the result as a test attribute for reporting.
-#     # execute all other hooks to obtain the report object
-#     outcome = yield
-#     rep = outcome.get_result()
-#     # set an report attribute for each phase of a call, which can
-#     # be "setup", "call", "teardown"
-#     setattr(item, "rep_" + rep.when, rep)
-#     return rep
 
 
