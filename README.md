@@ -9,6 +9,7 @@ handy URLS:
 
 > push-gateway (received metrics from our pytest app)
   http://localhost:9091
+  http://localhost:9091/metrics (raw metrics)
 
 > prometheus (explore the data it has scraped from push-gateway)
   http://localhost:9090/graph
@@ -28,5 +29,19 @@ Goal:
 
 # running locally
 
-  launch with:
+  1. install virtualenv
+  `make deps`
+
+  2. `direnv allow` ... or... `source venv/bin/activate`
+
+  3. install the `pytest-prom` I'm playing with
+  `pip install  pytest-prom/`
+
+  4. launch the support containers
+
   `docker-compose up`
+
+  5. run a test
+  (locally)
+
+  ``pytest ./tests  --prometheus-pushgateway-url http://localhost:9091 --prometheus-metric-prefix abc_  --prometheus-job-name zalenium --prometheus-extra-label foo=waz``

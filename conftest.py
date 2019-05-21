@@ -8,7 +8,7 @@ import requests
 from os import getenv, path
 import time
 from datetime import datetime as dt
-
+import pytest_prom
 
 @pytest.fixture(scope='session')
 def driver(request):
@@ -30,7 +30,8 @@ def driver(request):
         command_executor=hub_address,
         desired_capabilities=DesiredCapabilities.CHROME
     )
-
+    # always open ANY page so setting cookie on teardown isn't raised as an error
+    browser.get("https://www.cloudflarestatus.com/")
     print("===== main browser init done====")
     yield browser
 
@@ -71,29 +72,3 @@ def driver(request):
 #     return rep
 
 
-@pytest.hookimpl(tryfirst=True, hookwrapper=True)
-def pytest_runtest_makereport(item, call):
-    # this sets the result as a test attribute for reporting.
-    # execute all other hooks to obtain the report object
-    outcome = yield
-    rep = outcome.get_result()
-    # set an report attribute for each phase of a call, which can
-    # be "setup", "call", "teardown"
-    setattr(item, "rep_" + rep.when, rep)
-
-@pytest.hookimpl(tryfirst=True, hookwrapper=True)
-def pytest_runtest_makereport(item, call):
-    # execute all other hooks to obtain the report object
-    outcome = yield
-    rep = outcome.get_result()
-
-    # we only look at actual failing test calls, not setup/teardown
-    if rep.when == "call" and rep.failed:
-        mode = "a" if path.exists("failures") else "w"
-        with open("failures", mode) as f:
-            # let's also access a fixture for the fun of it
-            if "tmpdir" in item.fixturenames:
-                extra = " (%s)" % item.funcargs["tmpdir"]
-            else:
-                extra = ""
-            f.write(rep.nodeid + extra + "\n")

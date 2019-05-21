@@ -19,7 +19,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     privileged: true
     command: >
-       start --desiredContainers 2
+       start --desiredContainers 1
              --cbtEnabled false
              --videoRecordingEnabled true
 
@@ -37,12 +37,12 @@ services:
     ports:
       - 9091:9091
 
-  grafana:
-    image: grafana/grafana:4.6.2
-    ports:
-      - 3000:3000
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+  # grafana:
+    # image: grafana/grafana:4.6.2
+    # ports:
+      # - 3000:3000
+    # environment:
+      # - GF_SECURITY_ADMIN_PASSWORD=admin
 
   alertmanager:
     image: prom/alertmanager:v0.11.0
