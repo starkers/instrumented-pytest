@@ -10,6 +10,13 @@ import time
 from datetime import datetime as dt
 import pytest_prom
 
+# log_level = getenv("LOG_LEVEL", "info")
+# def pytest_logger_config(logger_config):
+#     logger_config.add_loggers(['log'], stdout_level=log_level)
+#     logger_config.set_log_option_default('log')
+
+
+
 @pytest.fixture(scope='session')
 def driver(request):
     """
@@ -17,8 +24,8 @@ def driver(request):
     :type request: object
     """
 
-    hub_address = getenv("HUB_ADDRESS", "http://localhost:4444/wd/hub")
 
+    hub_address = getenv("HUB_ADDRESS", "http://localhost:4444/wd/hub")
     response = requests.head(hub_address)
     while response.status_code != 500:
         print('sleeping:', str(dt.now()), response.status_code)
@@ -33,6 +40,7 @@ def driver(request):
     # always open ANY page so setting cookie on teardown isn't raised as an error
     browser.get("https://www.cloudflarestatus.com/")
     print("===== main browser init done====")
+    # this yield passes the browser object out to any tests asking for 'driver'
     yield browser
 
     if browser:
@@ -60,6 +68,7 @@ def driver(request):
         print("telling zalenium the tests failed")
         browser.add_cookie({"name": "zaleniumTestPassed", "value": "false"})
 
+    # lets end with the absolute final tear-down function
     request.addfinalizer(fin)
 
 
