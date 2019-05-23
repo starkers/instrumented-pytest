@@ -11,4 +11,4 @@ COPY . .
 
 RUN ls -la
 
-CMD pytest ./tests  --capture=no
+CMD ./launch.py

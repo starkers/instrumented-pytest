@@ -12,7 +12,7 @@ def test_google(driver):
 
 @pytest.mark.usefixtures("driver")
 def test_fast_failure(driver):
-    assert "quick" == "quick"
+    assert "slow" == "quick"
 
     # driver.get("https://wtfismyip.com")
     # print(driver.title)

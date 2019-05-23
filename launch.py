@@ -1,85 +1,74 @@
 #!/usr/bin/env python
-from distutils.util import strtobool
-from tooling import healthcheck_selenium
-import os
-import pytest
+import schedule
+# from distutils.util import strtobool
+from tooling import check_selenium_ready, subprocess_caller, json_to_metrics
 import time
 import logging
+import json
+from prometheus_client import start_http_server, Summary, Counter
+from time import sleep
+import re
+import os
+
+
+
+
+def wait_for_selenium(url):
+    # wait till selenium/zalenium is ready to do work
+    while True:
+        if check_selenium_ready(url):
+            return True
+            # break
+        else:
+            logging.info("cannot contact selenium.. sleeping then retrying")
+            time.sleep(5)
 
 
 if __name__ == "__main__":
 
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s:%(name)s:%(funcName)s():%(levelname)s:%(message)s',
+        datefmt='%Y-%m-%d_%H:%M:%S'
+    )
+    start_http_server(9180)
+    logging.info("metrics started on port 9180")
 
-    logger = logging.getLogger(__name__)
+    metric_session_time = Summary('zalenium_session_time', 'How many complete test sessions')
+    # metric_failed = Summary('zalenium_failed', 'info about failing tests', ['file', 'class', 'function', 'status'])
+    metric_test_sum = Summary('zalenium_test_sum', 'info about passing tests', ['file', 'class', 'function', 'status'])
+    metric_test_count = Counter('zalenium_test_count', 'fine grained info about each test', ['file', 'class', 'function', 'status'])
 
-    # wait till selenium/zalenium is ready to do work
-    while True:
-        if healthcheck_selenium('http://localhost:4444/wd/hub'):
-            break
+
+    def business_logic(frequency):
+        logging.info("business open")
+        # how frequently to run tests?
+        hub_url = os.getenv('HUB_URL', "http://localhost:4444/wd/hub")
+        # ensure the subprocess will die at least 1 second before we want to schedule another run
+        timeout = frequency - 1
+        if check_selenium_ready(hub_url):
+
+            # pytest with this flag will generate a report to .json
+            cmd = "pytest ./tests --json-report --log-cli-level=INFO"
+            # default file that pytest-json writes to
+            jsonfile = ".report.json"
+
+            logging.info("running command: {}".format(cmd))
+            subprocess_caller(cmd=cmd, timeout=timeout)
+            logging.info("completed the test run")
+            json_to_metrics(
+                jsonfile,
+                metric_session_time,
+                metric_test_sum,
+                metric_test_count)
         else:
-            logger.info("cannot contact selenium.. sleeping then retrying")
-            time.sleep(5)
-
-    # arguments and plugins we're going to call pytest with
-    argv = []
-    plugins = []
-
-    #                     [tests]
-    # test_path is the directory containing pytest "test"..
-    # in this case its ./tests/
-    tests_from = os.getenv("TESTS_FROM", "./tests/")
-    test_path = str(tests_from) #TODO: do we need str() ?
-    argv.append(test_path)
-
-    #                     [logging]
-    # ensure "pytest-logging" is used.. (TIP: to tweak format.. see pytest.ini)
-    plugins.append("logging")
-    log_level = os.getenv("LOG_LEVEL", "INFO")  # DEBUG, INFO CRITICAL, ERROR
-    argv.append('--log-cli-level={}'.format(log_level))
-    argv.append('-o')
-    argv.append('log_cli=true')
-    # argv.append('log_cli_date_format=%Y-%m-%d %H:%M:%S')
-    # argv.append('log_cli_format=%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)')
-
-    argv.append('--disable-warnings')
-
-    #                     [behaviour]
-    # if set tests will stop and exit on any failures
-    if strtobool(os.getenv("FAIL_FAST", "True")):
-        argv.append('--exitfirst')
+            logging.error("darn.. no selenium")
 
 
-    #                     [metrics]
-    # TODO: make this better..
-    prom_job = os.getenv("PROM_JOB", "jobname")
-    prom_prefix = os.getenv("PROM_PREFIX", "aaa_")
-    prom_push = strtobool(os.getenv("PROM_PUSH", "True"))
-    prom_push_url = os.getenv("PROM_PUSH_URL", "http://localhost:9091")
-    if prom_push:
-        pass
-        # argv.append('--prometheus-pushgateway-url')
-        # argv.append(prom_push_url)
-        #
-        # argv.append('--prometheus-metric-prefix')
-        # argv.append(prom_prefix)
-        #
-        # argv.append('--prometheus-job-name')
-        # argv.append(prom_job)
-        #
-        # argv.append('--prometheus-extra-label')
-        # argv.append("foo=bar")
-
-        # argv.append('--capture=no')
-
-    # plugins we're going to use..
-    # some will be automatically installed and active but lets insist on some
+    frequency = int(os.getenv('FREQUENCY', 60))
+    schedule.every(frequency).seconds.do(business_logic, frequency)
 
     while True:
-        logger.info("launch time")
-
-        print(argv)
-        pytest.main(argv, plugins=plugins)
-        logger.info("run complete... sleeping a little")
-        time.sleep(40)
-
+        schedule.run_pending()
+        time.sleep(1)
 

@@ -30,4 +30,5 @@ scrape_configs:
         - pushgateway:9091
         - alertmanager:9093
         - grafana:3000
+        - app:9180
 
