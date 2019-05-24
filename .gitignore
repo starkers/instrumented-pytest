@@ -3,3 +3,6 @@ venv/**
 **.pyc
 .idea
 .report.json
+config.yml
+
+.vscode

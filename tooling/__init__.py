@@ -67,7 +67,8 @@ def check_selenium_ready(url):
 def subprocess_caller(
         cmd,
         timeout=False,
-        logfile="stdout.txt"
+        logfile="stdout.txt",
+        extra_env=None
         ):
     """
     launches a subprocess, returns True/False based on return-code
@@ -81,6 +82,10 @@ def subprocess_caller(
         if timeout is not False:
             kwargs['timeout'] = int(timeout)
 
+        if extra_env is None:
+            extra_env = {}
+
+        # kwargs['env'] = extra_env
         # kwargs['stdout'] = temp_file
         # kwargs['stderr'] = temp_file
         kwargs['shell'] = True

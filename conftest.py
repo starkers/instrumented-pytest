@@ -1,14 +1,13 @@
-import pytest
-# from os import environ
-from selenium import webdriver
-from selenium.common.exceptions import WebDriverException
-# from selenium.webdriver.remote.remote_connection import RemoteConnection
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-import requests
+# from selenium.common.exceptions import WebDriverException
+# import datetime
 from os import getenv, path
+from selenium import webdriver
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+import pytest
+import requests
 import time
-from datetime import datetime as dt
-
+import yaml
+import logging
 
 
 @pytest.fixture(scope='session')
@@ -18,34 +17,42 @@ def driver(request):
     :type request: object
     """
 
-    hub_address = getenv("HUB_URL", "http://localhost:4444/wd/hub")
-    response = requests.head(hub_address)
-    while response.status_code != 500:
-        print('sleeping:', str(dt.now()), response.status_code)
-        print('sleeping:', str(dt.now()), response.headers)
-        time.sleep(1)
-        response = requests.head(hub_address)
 
+    with open('config.yaml', 'r') as cfg_file:
+        cfg = yaml.safe_load(cfg_file)
+
+    logging.error(cfg)
+    hub_address = cfg['hub_url']
+
+    # zalenium session name
+    session_name = "{}-{}".format(
+        cfg['now'],
+        cfg['name'],
+    )
+
+    capabilities = DesiredCapabilities.CHROME.copy()
+    capabilities['name'] = "{}".format(
+        session_name
+    )
     browser = webdriver.Remote(
         command_executor=hub_address,
-        desired_capabilities=DesiredCapabilities.CHROME
+        desired_capabilities=capabilities
     )
     # always open ANY page so setting cookie on teardown isn't raised as an error
     browser.get("https://www.cloudflarestatus.com/")
-    print("===== main browser init done====")
+    logging.debug("===== main browser init done====")
     # this yield passes the browser object out to any tests asking for 'driver'
     yield browser
 
-    if browser:
-        print("did summing here.. maybe retrieved session ID?")
-    else:
-        raise WebDriverException("Never created!")
+    # NOTE: keep this section incase you have issues with the selenium driver.
+    # if browser:
+    #     logging.info("browser existed and was shut down OK")
+    # else:
+    #     raise WebDriverException("Never created!")
 
     def fin():
-        # print("=== generate a report or summin in fin()")
-        print("===== close()")
+        logging.debug("closing and quitting browser")
         browser.close()
-        print("===== quit()")
         browser.quit()
         # https://github.com/saucelabs-sample-test-frameworks/Python-Pytest-Selenium/blob/master/conftest.py
         pass

@@ -9,7 +9,8 @@ from prometheus_client import start_http_server, Summary, Counter
 from time import sleep
 import re
 import os
-
+import datetime
+import yaml
 
 
 
@@ -35,37 +36,54 @@ if __name__ == "__main__":
     logging.info("metrics started on port 9180")
 
     metric_session_time = Summary('zalenium_session_time', 'How many complete test sessions')
-    # metric_failed = Summary('zalenium_failed', 'info about failing tests', ['file', 'class', 'function', 'status'])
     metric_test_sum = Summary('zalenium_test_sum', 'info about passing tests', ['file', 'class', 'function', 'status'])
     metric_test_count = Counter('zalenium_test_count', 'fine grained info about each test', ['file', 'class', 'function', 'status'])
 
+    # how often to run pytest
+    frequency = int(os.getenv('FREQUENCY', 10))
 
-    def business_logic(frequency):
-        logging.info("business open")
-        # how frequently to run tests?
+
+
+    def business_logic(how_often):
+        timeout = how_often - 1
+
+
+        ## SETTINGS
+        settings = {}
         hub_url = os.getenv('HUB_URL', "http://localhost:4444/wd/hub")
+        settings["hub_url"] = hub_url
         # ensure the subprocess will die at least 1 second before we want to schedule another run
-        timeout = frequency - 1
-        if check_selenium_ready(hub_url):
+        now = datetime.datetime.now()
+        now.strftime('%Y-%m-%d %H:%M:%S') + ('-%02d' % (now.microsecond / 10000))
+        name = os.getenv('NAME', "unknown-test-name")
+        settings = dict(
+            hub_url=hub_url,
+            now=now,
+            name=name,
+        )
+        with open('config.yaml', 'w') as outfile:
+            yaml.dump(settings, outfile, default_flow_style=False)
+        logging.info("time to start doing stuff")
+        # tell the subprocess to timeout 1 second before we wanna run again
 
+        if check_selenium_ready(hub_url):
             # pytest with this flag will generate a report to .json
             cmd = "pytest ./tests --json-report --log-cli-level=INFO"
+
             # default file that pytest-json writes to
-            jsonfile = ".report.json"
+            report_file = ".report.json"
 
             logging.info("running command: {}".format(cmd))
             subprocess_caller(cmd=cmd, timeout=timeout)
             logging.info("completed the test run")
             json_to_metrics(
-                jsonfile,
+                report_file,
                 metric_session_time,
                 metric_test_sum,
                 metric_test_count)
         else:
             logging.error("darn.. no selenium")
 
-
-    frequency = int(os.getenv('FREQUENCY', 60))
     schedule.every(frequency).seconds.do(business_logic, frequency)
 
     while True:

@@ -29,19 +29,28 @@ Goal:
 
 # running locally
 
-  1. install virtualenv
-  `make deps`
+1. install virtualenv
+`make deps`
 
-  2. `direnv allow` ... or... `source venv/bin/activate`
+2. `direnv allow` ... or... `source venv/bin/activate`
 
-  3. install the `pytest-prom` I'm playing with
-  `pip install  pytest-prom/`
+3. install the `pytest-prom` I'm playing with
+`pip install  pytest-prom/`
 
-  4. launch the support containers
+4. launch the support containers
 
-  `docker-compose up`
+`docker-compose up`
 
-  5. run a test
-  (locally)
+5. run a test
+you can skipp the launcher.py and just run pytest..
+First however u need to seed a config-file that the launcher creates..
+
+first create `config.yaml` like this:
+```
+---
+hub_url: http://localhost:4444/wd/hub
+name: my-suffix
+now: 2019-05-24 09:55:41.219340
+```
 
   ``pytest ./tests  --prometheus-pushgateway-url http://localhost:9091 --prometheus-metric-prefix abc_  --prometheus-job-name zalenium --prometheus-extra-label foo=waz``

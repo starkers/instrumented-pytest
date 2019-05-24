@@ -3,17 +3,17 @@
 version: "3"
 services:
 
-  app:
-    build:
-      context: .
-    depends_on:
-      - zalenium
-      - pushgateway
-    ports:
-      - 9180:9180
-    environment:
-      - HUB_URL=http://zalenium:4444/wd/hub
-      - FREQUENCY=30
+  # app:
+    # build:
+      # context: .
+    # depends_on:
+      # - zalenium
+      # - pushgateway
+    # ports:
+      # - 9180:9180
+    # environment:
+      # - HUB_URL=http://zalenium:4444/wd/hub
+      # - FREQUENCY=30
 
   zalenium:
     image: dosel/zalenium
