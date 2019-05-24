@@ -13,7 +13,6 @@ import datetime
 import yaml
 
 
-
 def wait_for_selenium(url):
     # wait till selenium/zalenium is ready to do work
     while True:
@@ -42,12 +41,8 @@ if __name__ == "__main__":
     # how often to run pytest
     frequency = int(os.getenv('FREQUENCY', 10))
 
-
-
     def business_logic(how_often):
         timeout = how_often - 1
-
-
         ## SETTINGS
         settings = {}
         hub_url = os.getenv('HUB_URL', "http://localhost:4444/wd/hub")
@@ -65,14 +60,11 @@ if __name__ == "__main__":
             yaml.dump(settings, outfile, default_flow_style=False)
         logging.info("time to start doing stuff")
         # tell the subprocess to timeout 1 second before we wanna run again
-
         if check_selenium_ready(hub_url):
             # pytest with this flag will generate a report to .json
             cmd = "pytest ./tests --json-report --log-cli-level=INFO"
-
             # default file that pytest-json writes to
             report_file = ".report.json"
-
             logging.info("running command: {}".format(cmd))
             subprocess_caller(cmd=cmd, timeout=timeout)
             logging.info("completed the test run")
@@ -83,9 +75,7 @@ if __name__ == "__main__":
                 metric_test_count)
         else:
             logging.error("darn.. no selenium")
-
     schedule.every(frequency).seconds.do(business_logic, frequency)
-
     while True:
         schedule.run_pending()
         time.sleep(1)

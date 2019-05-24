@@ -10,3 +10,5 @@
 docker-compose.yml
 venv/**
 .report.json
+.vscode/**
+.idea
