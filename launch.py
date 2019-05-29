@@ -34,9 +34,9 @@ if __name__ == "__main__":
     start_http_server(9180)
     logging.info("metrics started on port 9180")
 
-    metric_session_time = Summary('zalenium_session_time', 'How many complete test sessions')
-    metric_test_sum = Summary('zalenium_test_sum', 'info about passing tests', ['file', 'class', 'function', 'status'])
-    metric_test_count = Counter('zalenium_test_count', 'fine grained info about each test', ['file', 'class', 'function', 'status'])
+    metric_session_time = Summary('zalenium_session', 'How many complete test sessions')
+    metric_test_sum = Summary('zalenium_test', 'info about tests', ['file', 'class', 'function', 'status'])
+    metric_test_count = Counter('zalenium_test_count', 'test counts', ['file', 'class', 'function', 'status'])
 
     # how often to run pytest
     frequency = int(os.getenv('FREQUENCY', 10))
