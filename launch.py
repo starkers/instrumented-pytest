@@ -39,26 +39,43 @@ if __name__ == "__main__":
     metric_test_count = Counter('zalenium_test_count', 'test counts', ['file', 'class', 'function', 'status'])
 
     # how often to run pytest
-    frequency = int(os.getenv('FREQUENCY', 10))
+    frequency = int(os.getenv('FREQUENCY', 30))
 
     def business_logic(how_often):
-        timeout = how_often - 1
-        ## SETTINGS
-        settings = {}
-        hub_url = os.getenv('HUB_URL', "http://localhost:4444/wd/hub")
-        settings["hub_url"] = hub_url
         # ensure the subprocess will die at least 1 second before we want to schedule another run
-        now = datetime.datetime.now()
-        now.strftime('%Y-%m-%d %H:%M:%S') + ('-%02d' % (now.microsecond / 10000))
+        timeout = how_often - 1
+
+        # lets start a dictionary which we'll fill with some settings
+        settings = {}
+        # loop over all env vars
+        for k, v in os.environ.items():
+            # match any starting with "CONF_"
+            if re.search("^CONF_", k):
+                # strip off the prefix
+                k = re.sub(r'^CONF_', '', k)
+                # lowercase the key
+                k = k.lower()
+                # put the key value into the setting dict
+                settings[k] = v
+
+        time = datetime.datetime.now()
+        time.strftime('%Y-%m-%d %H:%M:%S') + ('-%02d' % (time.microsecond / 10000))
+        time = str(time)
+
+        hub_url = os.getenv('HUB_URL', "http://localhost:4444/wd/hub")
         name = os.getenv('NAME', "unknown-test-name")
-        settings = dict(
-            hub_url=hub_url,
-            now=now,
-            name=name,
-        )
+
+        settings["name"] = name
+        settings["time"] = time
+        settings["hub_url"] = hub_url
+
+
+        # TODO: extra labels?
+        # write settings to config.yaml
         with open('config.yaml', 'w') as outfile:
             yaml.dump(settings, outfile, default_flow_style=False)
-        logging.info("time to start doing stuff")
+        logging.info("wrote config to config.yaml")
+
         # tell the subprocess to timeout 1 second before we wanna run again
         if check_selenium_ready(hub_url):
             # pytest with this flag will generate a report to .json
