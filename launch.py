@@ -27,7 +27,7 @@ def wait_for_selenium(url):
 if __name__ == "__main__":
 
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.INFO,
         format='%(asctime)s:%(name)s:%(funcName)s():%(levelname)s:%(message)s',
         datefmt='%Y-%m-%d_%H:%M:%S'
     )
@@ -58,15 +58,15 @@ if __name__ == "__main__":
                 # put the key value into the setting dict
                 settings[k] = v
 
-        time = datetime.datetime.now()
-        time.strftime('%Y-%m-%d %H:%M:%S') + ('-%02d' % (time.microsecond / 10000))
-        time = str(time)
+        timestamp = datetime.datetime.now()
+        timestamp.strftime('%Y-%m-%d %H:%M:%S') + ('-%02d' % (timestamp.microsecond / 100))
+        timestamp = str(timestamp)
 
         hub_url = os.getenv('HUB_URL', "http://localhost:4444/wd/hub")
         name = os.getenv('NAME', "unknown-test-name")
 
         settings["name"] = name
-        settings["time"] = time
+        settings["timestamp"] = timestamp
         settings["hub_url"] = hub_url
 
 

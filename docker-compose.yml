@@ -8,13 +8,14 @@ services:
       context: .
     depends_on:
       - zalenium
-      - pushgateway
     ports:
       - 9180:9180
     environment:
       - HUB_URL=http://zalenium:4444/wd/hub
       - FREQUENCY=30
       - NAME=local
+#    volumes:
+#      - ./.report.json:/app/.report.json
 
   zalenium:
     image: dosel/zalenium
@@ -38,25 +39,25 @@ services:
     command: [ /bin/false ]
     restart: "no"
 
-  pushgateway:
-    image: prom/pushgateway:v0.4.0
-    ports:
-      - 9091:9091
+#  pushgateway:
+#    image: prom/pushgateway:v0.4.0
+#    ports:
+#      - 9091:9091
 
-  # grafana:
-    # image: grafana/grafana:4.6.2
-    # ports:
-      # - 3000:3000
-    # environment:
-      # - GF_SECURITY_ADMIN_PASSWORD=admin
+#   grafana:
+#     image: grafana/grafana:4.6.2
+#     ports:
+#       - 3000:3000
+#     environment:
+#       - GF_SECURITY_ADMIN_PASSWORD=admin
 
-  alertmanager:
-    image: prom/alertmanager:v0.11.0
-    command: --config.file=/etc/alertmanager/alertmanager.yml
-    ports:
-      - 9093:9093
-    volumes:
-      - ./local/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+#  alertmanager:
+#    image: prom/alertmanager:v0.11.0
+#    command: --config.file=/etc/alertmanager/alertmanager.yml
+#    ports:
+#      - 9093:9093
+#    volumes:
+#      - ./local/alertmanager.yml:/etc/alertmanager/alertmanager.yml
 
   prometheus:
     image: prom/prometheus:v2.0.0

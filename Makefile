@@ -33,16 +33,6 @@ deps-python:
 	$(VIRTUAL_ENV)/bin/pip3 install -q --upgrade pip ; \
 	$(VIRTUAL_ENV)/bin/pip3 install -q -r $(ROOTDIR)/requirements.txt
 
-
-## Initiate a full test (of all tests)
-# Usage:
-#  make test CLUSTER=qahivol NAMESPACE=foo
-test: test-generic
-
-#/ generic test
-test-generic: deps
-	./example.py --cluster $(CLUSTER) --namespace $(NAMESPACE)
-
 #? clean up venv
 clean:
 	rm -rf $(VIRTUAL_ENV)

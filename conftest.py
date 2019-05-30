@@ -17,16 +17,16 @@ def driver(request):
     :type request: object
     """
 
-
+    # read some config from 'config.yaml'
+    # typically launch.py will put some handy things in there
     with open('config.yaml', 'r') as cfg_file:
         cfg = yaml.safe_load(cfg_file)
 
-    logging.error(cfg)
     hub_address = cfg['hub_url']
 
     # zalenium session name
     session_name = "{}-{}".format(
-        cfg['now'],
+        cfg['timestamp'],
         cfg['name'],
     )
 
@@ -42,9 +42,12 @@ def driver(request):
     browser.get("https://www.cloudflarestatus.com/")
     logging.debug("===== main browser init done====")
     # this yield passes the browser object out to any tests asking for 'driver'
+    # think is this as where a 'return' would normally be but for pytest the pattern is to
+    # return the object here
     yield browser
 
-    # NOTE: keep this section incase you have issues with the selenium driver.
+    # NOTE: keep this section in-case you have issues with the selenium driver.
+    #       can be used to debug the issues like session timeouts
     # if browser:
     #     logging.info("browser existed and was shut down OK")
     # else:

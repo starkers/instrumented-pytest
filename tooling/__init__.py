@@ -6,17 +6,7 @@ import requests
 import subprocess
 import logging
 import json
-from prometheus_client import Summary, Counter
 import re
-
-
-# tests_from = os.getenv("TESTS_FROM", "./tests/")
-# verbose = strtobool(os.getenv("VERBOSE", "False"))
-# fail_fast = strtobool(os.getenv("FAIL_FAST", "True"))
-# prom_push = strtobool(os.getenv("PROM_PUSH", "True"))
-# prom_push_url = os.getenv("PROM_PUSH_URL", "http://localhost:9091")
-# prom_prefix = os.getenv("PROM_PREFIX", "aaa_")
-# prom_job = os.getenv("PROM_JOB", "jobname")
 
 
 def check_selenium_ready(url):
@@ -49,7 +39,7 @@ def check_selenium_ready(url):
 
     # we want the URI to be /wd/hub/status.. so: /wd/hub + /status
     url = url + "/status"
-    logging.info("checking if selenium is ready: {}".format(url))
+    logging.debug("checking if selenium is ready: {}".format(url))
     try:
         req = requests.get(url, timeout=5)
         if req.status_code == 200:
@@ -67,7 +57,6 @@ def check_selenium_ready(url):
 def subprocess_caller(
         cmd,
         timeout=False,
-        logfile="stdout.txt",
         extra_env=None
         ):
     """
@@ -77,26 +66,25 @@ def subprocess_caller(
     :return:
     """
 
-    with open(logfile, "w+") as temp_file:
-        kwargs = {}
-        if timeout is not False:
-            kwargs['timeout'] = int(timeout)
+    kwargs = {}
+    if timeout is not False:
+        kwargs['timeout'] = int(timeout)
 
-        if extra_env is None:
-            extra_env = {}
+    if extra_env is None:
+        extra_env = {}
 
-        # kwargs['env'] = extra_env
-        # kwargs['stdout'] = temp_file
-        # kwargs['stderr'] = temp_file
-        kwargs['shell'] = True
-        kwargs['universal_newlines'] = True
+    # kwargs['env'] = extra_env
+    # kwargs['stdout'] = temp_file
+    # kwargs['stderr'] = temp_file
+    kwargs['shell'] = True
+    kwargs['universal_newlines'] = True
 
-        try:
-            subprocess.check_call(cmd, **kwargs)
-            temp_file.flush()
-            return True
-        except:
-            return False
+    try:
+        subprocess.check_call(cmd, **kwargs)
+        return True
+    except:
+        return False
+
 
 def json_to_metrics(
         jsonfile,
@@ -126,9 +114,16 @@ def json_to_metrics(
         ))
         metric_session_total.observe(duration_total)
 
+        # gather some info from data.summary
         jobs_total = data['summary']['total']
-        jobs_failed = data['summary']['failed']
-        jobs_passed = data['summary']['passed']
+        if 'failed' in data['summary']:
+            jobs_failed = data['summary']['failed']
+        else:
+            jobs_failed = 0
+        if 'passwd' in data['summary']:
+            jobs_passed = data['summary']['passed']
+        else:
+            jobs_passed = 0
         logging.info("passed: {}, failed: {}, total: {}".format(
             jobs_passed, jobs_failed, jobs_total
         ))
@@ -144,9 +139,9 @@ def json_to_metrics(
                 return False
 
         # individual test metrics
-        logging.info("== test report ==")
+        logging.debug("== test report ==")
         for t in data['tests']:
-            logging.info("----------")
+            logging.debug("----------")
             nodeid = t['nodeid']
             status = t['outcome']
             duration_call = t['call']['duration']
