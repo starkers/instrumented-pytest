@@ -16,7 +16,7 @@ pytest-html==1.20.0
 pytest-json-report==1.0.3
 pytest-logger==0.5.0
 pytest-metadata==1.8.0
-PyYAML==5.1
+PyYAML==5.4
 requests==2.22.0
 schedule==0.6.0
 selenium==3.141.0
